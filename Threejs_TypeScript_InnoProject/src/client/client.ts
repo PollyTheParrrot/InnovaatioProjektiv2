@@ -1,9 +1,14 @@
 import * as THREE from 'three'
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls'
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
 import Stats from 'three/examples/jsm/libs/stats.module'
 
 const scene = new THREE.Scene()
 scene.add(new THREE.AxesHelper(5))
+
+const light = new THREE.PointLight()
+light.position.set(2.5, 7.5, 15)
+scene.add(light)
 
 const camera = new THREE.PerspectiveCamera(
     75,
@@ -74,6 +79,26 @@ cubes.forEach((c) => {
         2
     scene.add(c)
 })
+
+const objLoader = new OBJLoader()
+objLoader.load(
+    'models/LampPoleThreeJS.obj',
+    (object) => {
+        // (object.children[0] as THREE.Mesh).material = material
+        // object.traverse(function (child) {
+        //     if ((child as THREE.Mesh).isMesh) {
+        //         (child as THREE.Mesh).material = material
+        //     }
+        // })
+        scene.add(object)
+    },
+    (xhr) => {
+        console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    },
+    (error) => {
+        console.log(error)
+    }
+)
 
 const onKeyDown = function (event: KeyboardEvent) {
     switch (event.code) {
