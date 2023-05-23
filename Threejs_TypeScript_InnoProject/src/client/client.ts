@@ -1,7 +1,9 @@
 import * as THREE from 'three'
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
 import Stats from 'three/examples/jsm/libs/stats.module'
+import { GUI } from 'dat.gui'
 
 const scene = new THREE.Scene()
 scene.add(new THREE.AxesHelper(5))
@@ -80,6 +82,59 @@ cubes.forEach((c) => {
     scene.add(c)
 })
 
+let mixer: THREE.AnimationMixer
+let modelReady = false
+const animationActions: THREE.AnimationAction[] = []
+let activeAction: THREE.AnimationAction
+let lastAction: THREE.AnimationAction
+const fbxLoader: FBXLoader = new FBXLoader()
+
+fbxLoader.load(
+    'models/XBot.fbx',
+    (object) => {
+        object.scale.set(0.01, 0.01, 0.01)
+        mixer = new THREE.AnimationMixer(object)
+
+        const animationAction = mixer.clipAction((object as THREE.Object3D).animations[0])
+        animationActions.push(animationAction)
+        animationsFolder.add(animations, 'default')
+        activeAction = animationActions[0]
+
+        scene.add(object)
+
+        //add an animation from another file
+        fbxLoader.load(
+            'models/XBot@ShootingGun.fbx',
+            (object) => {
+                console.log('loaded ShootingGun')
+
+                const animationAction = mixer.clipAction(
+                    (object as THREE.Object3D).animations[0]
+                )
+                animationActions.push(animationAction)
+                animationsFolder.add(animations, 'shoot')
+                console.log(animationActions);
+                modelReady = true
+
+            },
+            (xhr) => {
+                console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+            },
+            (error) => {
+                console.log(error)
+            }
+        )
+    },
+    (xhr) => {
+        console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    },
+    (error) => {
+        console.log(error)
+    }
+)
+
+
+
 const objLoader = new OBJLoader()
 objLoader.load(
     'models/LampPoleThreeJS.obj',
@@ -90,6 +145,7 @@ objLoader.load(
         //         (child as THREE.Mesh).material = material
         //     }
         // })
+        object.position.set(2,0,0);
         scene.add(object)
     },
     (xhr) => {
@@ -114,6 +170,9 @@ const onKeyDown = function (event: KeyboardEvent) {
         case 'KeyD':
             controls.moveRight(0.25)
             break
+        case 'KeyY':
+            setAction(animationActions[1])
+            break
     }
 }
 document.addEventListener('keydown', onKeyDown, false)
@@ -129,10 +188,42 @@ function onWindowResize() {
 const stats = new Stats()
 document.body.appendChild(stats.dom)
 
+const animations = {
+    default: function () {
+        setAction(animationActions[0])
+    },
+    shoot: function () {
+        setAction(animationActions[1])
+    },
+    bellydance: function () {
+        setAction(animationActions[2])
+    },
+    goofyrunning: function () {
+        setAction(animationActions[3])
+    },
+}
+
+const setAction = (toAction: THREE.AnimationAction) => {
+    if (toAction != activeAction) {
+        lastAction = activeAction
+        activeAction = toAction
+        //lastAction.stop()
+        lastAction.fadeOut(1)
+        activeAction.reset()
+        activeAction.fadeIn(1)
+        activeAction.play()
+    }
+}
+const clock: THREE.Clock = new THREE.Clock()
+const gui = new GUI()
+const animationsFolder = gui.addFolder('Animations')
+animationsFolder.open()
+
 function animate() {
     requestAnimationFrame(animate)
 
     //controls.update()
+    if (modelReady) mixer.update(clock.getDelta())
 
     render()
 
