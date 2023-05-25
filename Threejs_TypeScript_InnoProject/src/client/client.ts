@@ -21,9 +21,9 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.y = 1
 camera.position.z = 2
 
-const raycaster = new THREE.Raycaster()
+
 const renderer = new THREE.WebGLRenderer()
-const mouse = new THREE.Vector2()
+
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
@@ -36,8 +36,7 @@ startButton.addEventListener(
     },
     false
 )
-raycaster.setFromCamera(mouse, camera)
-const intersects = raycaster.intersectObjects(sceneMeshes, false)
+
 
 const controls = new PointerLockControls(camera, renderer.domElement)
 //controls.addEventListener('change', () => console.log("Controls Change"))
@@ -94,32 +93,7 @@ let lastAction: THREE.AnimationAction
 const fbxLoader: FBXLoader = new FBXLoader()
 
 
-function onDoubleClick(event: MouseEvent) {
-    mouse.set(
-        (event.clientX / renderer.domElement.clientWidth) * 2 - 1,
-        -(event.clientY / renderer.domElement.clientHeight) * 2 + 1
-    )
-    raycaster.setFromCamera(mouse, camera)
 
-    const intersects = raycaster.intersectObjects(sceneMeshes, false)
-
-    if (intersects.length > 0) {
-        const n = new THREE.Vector3()
-        n.copy((intersects[0].face as THREE.Face).normal)
-        n.transformDirection(intersects[0].object.matrixWorld)
-
-        // const cube = new THREE.Mesh(boxGeometry, material)
-        const cube = new THREE.Mesh(coneGeometry, material)
-
-        cube.lookAt(n)
-        cube.rotateX(Math.PI / 2)
-        cube.position.copy(intersects[0].point)
-        cube.position.addScaledVector(n, 0.1)
-
-        scene.add(cube)
-        sceneMeshes.push(cube)
-    }
-}
 
 fbxLoader.load(
     'models/XBot.fbx',
