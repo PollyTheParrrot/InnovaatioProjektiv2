@@ -1,3 +1,4 @@
+
 import express from 'express'
 import path from 'path'
 import http from 'http'
@@ -53,7 +54,7 @@ class App {
 
     public Start() {
         this.server.listen(this.port, () => {
-            console.log(Server listening on port ${this.port}.)
+            console.log(`Server listening on port ${this.port}.`)
         })
     }
 }
